@@ -1,0 +1,127 @@
+body{
+	background:url(../images/fondo.png);
+	padding:0px;
+	margin:0px;
+}
+
+#curso{
+	margin:0 auto;
+	width:100%;
+}
+
+
+#curso #panel_izq{
+	float:left;
+	width:20%;
+	background: url(../images/fondo_panel_izq.png);
+}
+
+#curso #panel_izq #avatar{
+	margin:2px auto; 
+}
+
+#curso #panel_izq #avatar img{
+	margin:15px 7%;
+}
+
+#curso #panel_izq #informacion_personal{
+	margin:2px auto;
+	color:#FFF;	
+}
+#curso #panel_izq #informacion_personal table{
+	margin:3px auto;
+	text-align: center;
+	width: 90%;
+}
+
+#curso #panel_izq #informacion_personal .acordion .titulo{
+	background-color: #76C5F0;
+	color:#000;
+}
+
+#curso #panel_central{
+	float:left;
+	width:80%;
+}
+
+#curso #panel_central #menu{
+	float:left;
+	width:100%;
+}
+
+#curso #panel_central #menu #op{
+    background-color: #306060;
+    color: #FFFFFF;
+    float: right;
+    font-size: 19px;
+    padding: 10px;
+    border-top:4px solid #000;
+}
+
+#curso #panel_central #menu .activo{
+	color:#FDF204 !important;
+	border-top:4px solid #FDF204 !important;
+}
+#pie{
+    background-color: #306060;
+    color: #FDF204;
+    margin: auto;
+    padding: 6px;
+    text-align: center;
+    width: 70%;
+}
+
+#form_curso{
+    background-color: #F5F5F5;
+    margin: 10px auto;
+    padding: 25px;
+    width: 466px;
+}
+
+#form_curso #Cursos_descripcion_curso{
+    width:98% !important;
+}
+
+#form_contenidos{
+    background-color: #F5F5F5;
+    margin: 10px auto;
+    padding: 25px;
+    width: 692px;
+}
+#form_contenidos #Contenidos_observacion{
+    width:98% !important
+}
+#form_taller{
+    background-color: #F5F5F5;
+    margin: 10px auto;
+    padding: 25px;
+    width: 674px; 
+}
+
+#form_taller #Talleres_descripcion{
+    width:98% !important;
+}
+
+.portlet {
+    display: inline-block;
+}
+
+#content{
+    margin: 0px 26px 26px 26px;
+}
+
+#menu-admin{
+    margin-left: 26px;
+    margin-top: 15px;
+}
+
+.alert {
+    margin-top: 4em;
+}
+
+.titulos_admin{
+   font-size:24px;
+   width:100%;
+   text-align: center;
+   color:#306060;
+}
