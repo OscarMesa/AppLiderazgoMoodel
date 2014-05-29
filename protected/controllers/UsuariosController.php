@@ -46,10 +46,9 @@ class UsuariosController extends Controller {
         //print_r(Yii::app()->user);exit();
         if (!Yii::app()->user->isGuest) {
             // $this->render('application.views.site.inicio');
-
-            $this->redirect(Yii::app()->getBaseUrl(true) . '/cursos/curso');
+            $this->redirect(Yii::app()->getBaseUrl(true) . '/cuota/create');
         } else {
-            $this->redirect('site/login');
+            $this->redirect(Yii::app()->getBaseUrl(true).'/site/login');
         }
     }
 

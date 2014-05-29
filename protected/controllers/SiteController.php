@@ -36,7 +36,7 @@ class SiteController extends Controller {
                 'roles' => array('admin'),
             ),
             array('allow', // allow admin user to perform 'admin' and 'delete' actions
-                'actions' => array('AjaxRecuperar', 'AjaxRegistro', 'AjaxInicioSesion', 'login'),
+                'actions' => array('AjaxRecuperar', 'AjaxRegistro', 'AjaxInicioSesion', 'login','logout'),
                 'users' => array('*'),
             ),
             array('deny', // deny all users
@@ -111,25 +111,12 @@ class SiteController extends Controller {
             // validate user input and redirect to the previous page if valid
 
             $user = Yii::app()->getComponent('user');
-            $usuario = Usuarios::model()->find('correo=?', array($model->username));
-            // exit();
-            if ($usuario != null) {
-                if ($usuario->state_usuario == 'inactive') {
-                    $user->setFlash('error', "<strong>Error!</strong> Lo sentimos este usuario esta inactivo.");
-                } else if ($usuario->state_usuario == 'not_confirmed') {
-                    $user->setFlash('warning', "<strong>Atención!</strong> Debe confirmar su cuenta.");
-                } else if ($usuario->state_usuario == 'not_confirmed_admin') {
-                    $user->setFlash('warning', "<strong>Atención!</strong> Esta cuenta debe ser confirmada por el administrador.");
-                } else if ($usuario->state_usuario == 'recover_password') {
-                    $user->setFlash('warning', "<strong>Atención!</strong> Esta cuenta tiene una solicitud para restaurar la contraseña, debe restaurarce para iniciar.");
-                } else if ($model->validate() && $model->login()) {
-                    $this->redirect(Yii::app()->baseUrl . '/' . Yii::app()->defaultController);
-                }
-            } else {
-                if ($model->validate() && $model->login()) {
-                    $this->redirect(Yii::app()->baseUrl . '/' . Yii::app()->defaultController);
-                }
+            //$usuario = MdlUser::model()->find('username=?', array($model->username));
+
+            if ($model->validate() && $model->login()) {
+                $this->redirect(Yii::app()->baseUrl . '/' . Yii::app()->defaultController);
             }
+            //  }
         }//','',''
 
         $this->render('application.views.usuarios.login', array(

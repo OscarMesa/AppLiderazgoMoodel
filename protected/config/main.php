@@ -99,6 +99,7 @@ return array(
             'charset' => 'utf8',
             'tablePrefix' => '',
             'enableProfiling' => true,
+            'class'  => 'CDbConnection' 
         ),
         // uncomment the following to use a MySQL database
         /*

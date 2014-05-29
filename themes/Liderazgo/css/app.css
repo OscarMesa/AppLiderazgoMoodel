@@ -7,8 +7,15 @@ body{
 #curso{
 	margin:0 auto;
 	width:100%;
+        margin-top: 3em;
+}
+#panel_central > div {
+    margin-top: 3em;
 }
 
+.brand{
+    padding: 0px !important;
+}
 
 #curso #panel_izq{
 	float:left;

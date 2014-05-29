@@ -1,6 +1,6 @@
 <?php
 
-class CursosController extends Controller {
+class CourseController extends Controller {
 
     /**
      * @var string the default layout for the views. Defaults to '//layouts/column2', meaning
@@ -23,19 +23,13 @@ class CursosController extends Controller {
      * @return array access control rules
      */
     public function accessRules() {
-        $permisos_profesor = array();
-        if (Yii::app()->user->esProfesor()) {
-            $permisos_profesor = array('create', 'update', 'curso', 'admin','delete');
-        } else {
-            $permisos_profesor = array('create', 'update', 'curso');
-        }
         return array(
             array('allow', // allow all users to perform 'index' and 'view' actions
                 'actions' => array('index', 'view'),
                 'users' => array('*'),
             ),
             array('allow', // allow authenticated user to perform 'create' and 'update' actions
-                'actions' => $permisos_profesor,
+                'actions' => array('create', 'update','PrioridadCurso'),
                 'users' => array('@'),
             ),
             array('allow', // allow admin user to perform 'admin' and 'delete' actions
@@ -46,6 +40,39 @@ class CursosController extends Controller {
                 'users' => array('*'),
             ),
         );
+    }
+    
+    public function actionPrioridadCurso()
+    {
+        $model = new AlmComplementoCursos();
+        if(isset($_POST['Curso_Consecutivo']))
+        {
+            $return = true;
+            AlmComplementoCursos::model()->deleteAll();
+            foreach ($_POST['Curso_Consecutivo'] as $curso => $prioridad) {
+               if($prioridad == null)continue;
+                $x = new AlmComplementoCursos();
+                $x->id_curso_mdl = $curso;
+                $x->prioridad = $prioridad;
+                if(!$x->save())
+                {
+                   $return = false;
+                   break;
+                }
+            }
+            if($return)
+            {
+                $user = Yii::app()->getComponent('user');
+                $user->setFlash(
+                    'success', "<strong>Exito!</strong> Los cambios han sido almacenados con éxito."
+            );
+            }
+            $model = $x;
+        }
+        $this->render('proridad', array(
+            'cursos' => MdlCourse::model()->findAll(array('order'=>'idnumber ASC')),
+            'model' => $model
+        ));
     }
 
     /**
@@ -63,36 +90,20 @@ class CursosController extends Controller {
      * If creation is successful, the browser will be redirected to the 'view' page.
      */
     public function actionCreate() {
-        $model = new Cursos;
-        if (isset($_POST['Cursos'])) {
-            $model->attributes = $_POST['Cursos'];
-            $fecha = explode(' - ', $_POST['Cursos']['fecha_inicio']);
-             if (count($fecha) == 2) {
-                $model->fecha_inicio = $fecha[0];
-                $model->fecha_cierre = $fecha[1];
-                             // exit();
-                $model->id_docente = Yii::app()->user->getId();
-            }  else {
-                $model->fecha_inicio = '';
-                $model->fecha_cierre = '';
-            }
-            if ($model->save()){
-             $user = Yii::app()->getComponent('user');
-                $user->setFlash(
-                            'success', "<strong>Exito!</strong> Se el curso fue creado exitosamente."
-                );
-                $this->redirect(Yii::app()->getBaseUrl(true).'/cursos/update/'.$model->id);
-            }
+        $model = new MdlCourse;
+
+// Uncomment the following line if AJAX validation is needed
+// $this->performAjaxValidation($model);
+
+        if (isset($_POST['MdlCourse'])) {
+            $model->attributes = $_POST['MdlCourse'];
+            if ($model->save())
+                $this->redirect(array('view', 'id' => $model->id));
         }
 
         $this->render('create', array(
             'model' => $model,
         ));
-    }
-
-    public function actionCurso() {
-        $model = new Cursos();
-        $this->render("create", array("model" => $model));
     }
 
     /**
@@ -103,29 +114,13 @@ class CursosController extends Controller {
     public function actionUpdate($id) {
         $model = $this->loadModel($id);
 
-        // Uncomment the following line if AJAX validation is needed
-        // $this->performAjaxValidation($model);
+// Uncomment the following line if AJAX validation is needed
+// $this->performAjaxValidation($model);
 
-        if (isset($_POST['Cursos'])) {
-            $model->attributes = $_POST['Cursos'];
-            $fecha = explode(' - ', $_POST['Cursos']['fecha_inicio']);
-
-            if (count($fecha) == 2) {
-                $model->fecha_inicio = $fecha[0];
-                $model->fecha_cierre = $fecha[1];
-            }  else {
-                $model->fecha_inicio = '';
-                $model->fecha_cierre = '';
-            }
-                
-            if ($model->validate() && $model->save())
-            {    
-                $user = Yii::app()->getComponent('user');
-                $user->setFlash(
-                            'success', "<strong>Exito!</strong> Se a modificiado el curso exitosamente."
-                );
-                $this->redirect(array('admin'));
-            }
+        if (isset($_POST['MdlCourse'])) {
+            $model->attributes = $_POST['MdlCourse'];
+            if ($model->save())
+                $this->redirect(array('view', 'id' => $model->id));
         }
 
         $this->render('update', array(
@@ -140,16 +135,13 @@ class CursosController extends Controller {
      */
     public function actionDelete($id) {
         if (Yii::app()->request->isPostRequest) {
-            // we only allow deletion via POST request
-            $model = $this->loadModel($id);
-            $model->state_curso = 'inactive';
-            $model->update();
+// we only allow deletion via POST request
+            $this->loadModel($id)->delete();
 
-            // if AJAX request (triggered by deletion via admin grid view), we should not redirect the browser
+// if AJAX request (triggered by deletion via admin grid view), we should not redirect the browser
             if (!isset($_GET['ajax']))
                 $this->redirect(isset($_POST['returnUrl']) ? $_POST['returnUrl'] : array('admin'));
-        }
-        else
+        } else
             throw new CHttpException(400, 'Invalid request. Please do not repeat this request again.');
     }
 
@@ -157,7 +149,7 @@ class CursosController extends Controller {
      * Lists all models.
      */
     public function actionIndex() {
-        $dataProvider = new CActiveDataProvider('Cursos');
+        $dataProvider = new CActiveDataProvider('MdlCourse');
         $this->render('index', array(
             'dataProvider' => $dataProvider,
         ));
@@ -167,11 +159,10 @@ class CursosController extends Controller {
      * Manages all models.
      */
     public function actionAdmin() {
-
-        $model = new Cursos('search');
+        $model = new MdlCourse('search');
         $model->unsetAttributes();  // clear any default values
-        if (isset($_GET['Cursos']))
-            $model->attributes = $_GET['Cursos'];
+        if (isset($_GET['MdlCourse']))
+            $model->attributes = $_GET['MdlCourse'];
 
         $this->render('admin', array(
             'model' => $model,
@@ -184,7 +175,7 @@ class CursosController extends Controller {
      * @param integer the ID of the model to be loaded
      */
     public function loadModel($id) {
-        $model = Cursos::model()->findByPk($id);
+        $model = MdlCourse::model()->findByPk($id);
         if ($model === null)
             throw new CHttpException(404, 'The requested page does not exist.');
         return $model;
@@ -195,7 +186,7 @@ class CursosController extends Controller {
      * @param CModel the model to be validated
      */
     protected function performAjaxValidation($model) {
-        if (isset($_POST['ajax']) && $_POST['ajax'] === 'cursos-form') {
+        if (isset($_POST['ajax']) && $_POST['ajax'] === 'mdl-course-form') {
             echo CActiveForm::validate($model);
             Yii::app()->end();
         }

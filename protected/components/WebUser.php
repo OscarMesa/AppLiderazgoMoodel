@@ -16,7 +16,7 @@ class WebUser extends CWebUser
     }
  
     public function login($identity, $duration) {
-        $this->setState('__perfiles', $identity->getPerfiles());
+     //   $this->setState('__perfiles', $identity->getPerfiles());
         $this->setState('idUsuario', $identity->getId());
 //       echo "<pre>";
 //        print_r($this->perfiles);
@@ -33,34 +33,5 @@ class WebUser extends CWebUser
         return $this->idUsuario;
     }
     
-    public function getPerfiles_1()
-    {
-        echo 'desde';
-        print_r($this->perfiles);
-        return $this->perfiles;
-    }
-    
-    public function esAdmin()
-    {
-        foreach (Yii::app()->user->__perfiles as $perfil) {
-            if($perfil->id_perfil == 6)
-            {
-                return TRUE;
-            }
-        }
-        return false;
-  
-      }
-    
-    public function esProfesor()
-    {
-        foreach (Yii::app()->user->__perfiles as $perfil) {
-            if($perfil->id_perfil == 4)
-            {
-                return TRUE;
-            }
-        }
-        return false;
-    }
 }
 ?>

@@ -8,103 +8,92 @@
         <title><?php echo CHtml::encode($this->pageTitle); ?></title>
         <link rel="stylesheet" type="text/css" href="<?php echo Yii::app()->theme->baseUrl; ?>/css/app.css"/>
         <link rel="stylesheet" type="text/css" href="<?php echo Yii::app()->theme->baseUrl; ?>/css/template.css"/>
-        <script src="<?php echo Yii::app()->baseUrl; ?>/js/jquery.tools.min.js"></script>
     </head>
 
     <body>
+<?php
 
-        <div id="menu_superior" class="grid_16 alpha omega"> <?php
-            $this->widget('zii.widgets.CMenu', array(
-                'items' => array( 
-                    //array('label' => 'Ingresar', 'url' => array('/site/login'), 'visible' => Yii::app()->user->isGuest),
-                    array('label' => 'Salir (' . Yii::app()->user->name . ')', 'url' => array('/site/logout'), 'visible' => !Yii::app()->user->isGuest)
+$this->widget('bootstrap.widgets.TbNavbar', array(
+            'type' => 'inverse', // null or 'inverse'
+            'brand' => '<img src="'.Yii::app()->getBaseUrl(true).'/themes/Liderazgo/images/logo.png">',
+            'brandUrl' => Yii::app()->getBaseUrl(true),
+            'collapse' => true, // requires bootstrap-responsive.css
+            'brandOptions' => array(
+            ),
+            'items' => array(
+                array(
+                    'class' => 'bootstrap.widgets.TbMenu',
+                    'items' => array(
+                        array('label' => 'Home', 'url' => array(Yii::app()->defaultController)),
+                        array('label' => 'Sobre nosotros', 'url' => 'http://www.escuelainternacionaldeliderazgo.com/conozcanos.html'),
+                        array('label' => 'Ingresar '
+                            , 'url' => array('/site/login')
+                            , 'visible' => Yii::app()->user->isGuest
+                            , 'itemOptions' => array(
+                                'class' => 'menu_ingreso menu_entrar'
+                            ),
+                        ),
+                        array('label' => 'Subir archivo'
+                            , 'url' => array('/cuota/create')
+                            , 'visible' => !Yii::app()->user->isGuest
+                            , 'itemOptions' => array(
+                            ),
+                        ),
+                        array('label' => 'Priorizar cursos'
+                            , 'url' => array('/course/prioridadCurso')
+                            , 'visible' => !Yii::app()->user->isGuest
+                            , 'itemOptions' => array(
+                            ),
+                        ),
+                        array('label' => 'Contactanos', 'url' => array('/site/contact')),
+                        array('label' => 'Salir (' . Yii::app()->user->name . ')'
+                            , 'url' => array('/site/logout')
+                            , 'visible' => !Yii::app()->user->isGuest
+                            , 'itemOptions' => array(
+                                'class' => 'menu_ingreso menu_salir'
+                            ),
+                        ),
+                    ),
                 ),
-            ));
+            ),
+        ));
+        
             ?>
+        <div id="menu_superior" class="grid_16 alpha omega"> 
         </div>
         <div id="curso">
             <div id="panel_izq">
                 <div id="avatar">
-                    <img src="<?php echo Yii::app()->getBaseUrl(true) ?>/themes/PoliAuLink/images/profe.png">
+                    <img src="<?php echo Yii::app()->getBaseUrl(true) ?>/themes/Liderazgo/images/logo-liderazgo.png">
                 </div>
-                <div id="informacion_personal">
-                    <div class='acordion'>
-                        <div class="titulo"> Datos Personales</div>
-                        <table>
-                            <tr>
-                                <td colspan="2">Diego Alberto Ochoa Ortiz</td>
-                            </tr>
-                            <tr>
-                                <td>Perfil</td><td>Docente</td>
-                            </tr>
-                            <tr>
-
-                            </tr>				
-                        </table>
-                    </div>
-                    <div class='acordion'>
-                        <div class="titulo"> Cursos Actuales </div>
-                        <table>
-                            <tr>
-                                <td>Materia</td><td>Estado</td>
-                            </tr>						
-                            <tr>
-                                <td>Matematica</td><td><img src='<?php echo Yii::app()->getBaseUrl(true) ?>/themes/PoliAuLink/images/activo.png'></td>
-                            </tr>	
-                            <tr>
-                                <td>Fisica</td><td><img src='<?php echo Yii::app()->getBaseUrl(true) ?>/themes/PoliAuLink/images/activo.png'></td>
-                            </tr>	
-                            <tr>
-                                <td>Quimica</td><td><img src='<?php echo Yii::app()->getBaseUrl(true) ?>/themes/PoliAuLink/images/inactivo.png'></td>
-                            </tr>	
-                            <tr>
-                                <td>Español</td><td><img src='<?php echo Yii::app()->getBaseUrl(true) ?>/themes/PoliAuLink/images/activo.png'></td>
-                            </tr>				
-                        </table>
-                    </div>
-                    <div class='acordion'>
-                        <div class="titulo"> Nuevo Curso </div>
-                    </div>								
-                </div>
-
+                
                 <div id="pie">
-                    <img src="<?php echo Yii::app()->getBaseUrl(true) ?>/themes/PoliAuLink/images/iefo.png" aling="left"><b>INSTITUCION EDUCATIVA FEDERICO OZANAM <br/> &copy; 2014</b>
+                    <b>Escuela Internacional de liderazgo <br/> &copy; 2014</b>
                 </div>               
             </div>
             <div id="panel_central">
                 <div id="menu">
-                    <?php 
-                                if(isset(Yii::app()->user->__perfiles) && Yii::app()->user->esProfesor())
-                                {
-                    
-                    ?>
-                    <div id="op" class='activo'><a href="<?php echo Yii::app()->getBaseUrl(true)?>/cursos/admin">Curso</a></div>
-                    <div id="op"><a href="<?php echo Yii::app()->getBaseUrl(true)?>/talleres/admin">Talleres</a></div>
-                    <div id="op">Ejercicios</div>
-                    <div id="op">Multimedia</div>
-                    <div id="op">Evaluaciones</div>
-                                <?php } ?>
+     
                 </div>
                 <div id="form">
                     <div  class="grid_16">
-                        <?php
-                        
-                        $this->widget('bootstrap.widgets.TbAlert', array(
-                            'block' => true,
-                            'fade' => true,
-                            'closeText' => '&times;', // false equals no close link
-                            'events' => array(),
-                            'htmlOptions' => array(),
-                            'userComponentId' => 'user',
-                            'alerts' => array(// configurations per alert type
-                                // success, info, warning, error or danger
-                                'success' => array('closeText' => '&times;'),
-                                'info', // you don't need to specify full config
-                                'warning' => array('block' => false, 'closeText' => false),
-                                'error' => array('block' => false, 'closeText' => 'AAARGHH!!')
-                            ),
-                        ));
-                        ?>
+<?php
+$this->widget('bootstrap.widgets.TbAlert', array(
+    'block' => true,
+    'fade' => true,
+    'closeText' => '&times;', // false equals no close link
+    'events' => array(),
+    'htmlOptions' => array(),
+    'userComponentId' => 'user',
+    'alerts' => array(// configurations per alert type
+        // success, info, warning, error or danger
+        'success' => array('closeText' => '&times;'),
+        'info', // you don't need to specify full config
+        'warning' => array('block' => false, 'closeText' => false),
+        'error' => array('block' => false, 'closeText' => 'AAARGHH!!')
+    ),
+));
+?>
 
 
                         <?php echo $content; ?>
