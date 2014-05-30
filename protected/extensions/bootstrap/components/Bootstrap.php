@@ -264,6 +264,8 @@ class Bootstrap extends CApplicationComponent
 	 */
 	protected function addOurPackagesToYii()
 	{
+          //  print_r($this->assetsRegistry);
+           //             exit();
 		foreach ($this->packages as $name => $definition) {
 			$this->assetsRegistry->addPackage($name, $definition);
 		}
