@@ -156,6 +156,7 @@ class CuotaController extends Controller {
                     }
                     }else{
                         $model->addErrors(array('Aun falta priorizan los cursos.'));
+                        $success = false;
                     }
                     fclose($handle);
                     if ($success) {
