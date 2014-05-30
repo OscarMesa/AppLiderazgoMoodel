@@ -60,6 +60,7 @@ class CuotaController extends Controller {
                     $cuota = 0;
                     //Consultamos el orden de prioridad de los cursos, ordenado por la prioridad.
                     $prioridad = AlmComplementoCursos::model()->findAll(array('order' => 'prioridad ASC'));
+                    if(count($prioridad)>0){
                     while (($data = fgetcsv($handle, 1000, $delimitador)) !== FALSE) {
                         // number of fields in the csv
                         if ($row == 0) {
@@ -152,6 +153,9 @@ class CuotaController extends Controller {
                             }
                         }
                         $row++;
+                    }
+                    }else{
+                        $model->addErrors(array('Aun falta priorizan los cursos.'));
                     }
                     fclose($handle);
                     if ($success) {

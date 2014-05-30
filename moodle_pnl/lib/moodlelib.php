@@ -4419,14 +4419,14 @@ function validate_internal_user_password($user, $password) {
         return password_verify($password, $user->password);
     }
 
-    echo 'este es el pass '.print_r($CFG);exit();
+   // echo 'este es el pass '.print_r($CFG);exit();
 
     // Otherwise we need to check for a legacy (md5) hash instead. If the hash
     // is valid we can then update it to the new algorithm.
 
     $sitesalt = isset($CFG->passwordsaltmain) ? $CFG->passwordsaltmain : '';
     $validated = false;
-echo $sitesalt; exit();
+//echo $sitesalt; exit();
     if ($user->password === md5($password.$sitesalt)
             or $user->password === md5($password)
             or $user->password === md5(addslashes($password).$sitesalt)
