@@ -61,7 +61,7 @@ class MdlUser extends CActiveRecord
 	 */
 	public function tableName()
 	{
-		return 'prograv3_moodle.mdl_user';
+		return 'mdl_user';
 	}
 
 	/**

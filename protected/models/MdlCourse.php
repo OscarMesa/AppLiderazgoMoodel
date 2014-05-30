@@ -42,7 +42,7 @@ class MdlCourse extends CActiveRecord
 	 */
 	public function tableName()
 	{
-		return 'prograv3_moodle.mdl_course';
+		return 'mdl_course';
 	}
 
 	/**
