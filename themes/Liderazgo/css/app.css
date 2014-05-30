@@ -5,9 +5,7 @@ body{
 }
 
 #curso{
-	margin:0 auto;
-	width:100%;
-        margin-top: 3em;
+
 }
 #panel_central > div {
     margin-top: 3em;
@@ -131,4 +129,14 @@ body{
    width:100%;
    text-align: center;
    color:#306060;
+}
+
+#filtro-evaluaciones tr td p {
+    width: 20em;
+}
+
+.nota{
+    padding: 1px;
+    border: 1px solid;
+    display: inline-block;
 }

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1"/>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+<<<<<<< HEAD
+=======
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/C:/xampp/htdocs/AppIngEgr/protected/views/usuarios/view.php</file>
+            <file>file:/C:/xampp/htdocs/AppIngEgr/protected/views/usuarios/create.php</file>
+            <file>file:/C:/xampp/htdocs/AppIngEgr/protected/views/usuarios/admin.php</file>
+            <file>file:/C:/xampp/htdocs/AppIngEgr/protected/views/usuarios/_search.php</file>
+            <file>file:/C:/xampp/htdocs/AppIngEgr/protected/views/usuarios/index.php</file>
+            <file>file:/C:/xampp/htdocs/AppIngEgr/index.php</file>
+            <file>file:/C:/xampp/htdocs/AppIngEgr/protected/views/usuarios/_view.php</file>
+            <file>file:/C:/xampp/htdocs/AppIngEgr/protected/models/Usuarios.php</file>
+            <file>file:/C:/xampp/htdocs/AppIngEgr/protected/views/usuarios/_form.php</file>
+            <file>file:/C:/xampp/htdocs/AppIngEgr/protected/views/ingresos/admin.php</file>
+            <file>file:/C:/xampp/htdocs/AppIngEgr/protected/models/Ingresos.php</file>
+            <file>file:/C:/xampp/htdocs/AppIngEgr/protected/views/usuarios/update.php</file>
+            <file>file:/C:/xampp/htdocs/AppIngEgr/protected/controllers/UsuariosController.php</file>
+        </group>
+    </open-files>
+>>>>>>> b08582ac523c6358c96380127e52cf01b43928f3
+</project-private>

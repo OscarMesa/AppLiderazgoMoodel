@@ -45,6 +45,12 @@ $this->widget('bootstrap.widgets.TbNavbar', array(
                             , 'itemOptions' => array(
                             ),
                         ),
+                        array('label' => 'Reporte de evaluaciones'
+                            , 'url' => array('/course/evaluacion')
+                            , 'visible' => !Yii::app()->user->isGuest
+                            , 'itemOptions' => array(
+                            ),
+                        ),
                         array('label' => 'Contactanos', 'url' => array('/site/contact')),
                         array('label' => 'Salir (' . Yii::app()->user->name . ')'
                             , 'url' => array('/site/logout')

@@ -29,7 +29,7 @@ class CourseController extends Controller {
                 'users' => array('*'),
             ),
             array('allow', // allow authenticated user to perform 'create' and 'update' actions
-                'actions' => array('create', 'update','PrioridadCurso'),
+                'actions' => array('create', 'update','PrioridadCurso','evaluacion'),
                 'users' => array('@'),
             ),
             array('allow', // allow admin user to perform 'admin' and 'delete' actions
@@ -42,6 +42,71 @@ class CourseController extends Controller {
         );
     }
     
+    public function actionEvaluacion()
+    {
+        //$_POST['course'] = 18;
+       // $_POST['user'] = 264;
+        $command1 = Yii::app()->db1->createCommand();
+        $command1->select('id,fullname,shortname,idnumber');
+        $command1->from('mdl_course');
+        $command1->order('idnumber ASC');
+        
+        
+        $command = Yii::app()->db1->createCommand();
+        $command->select("u.id userid,CONCAT(u.firstname,' ',u.lastname) username,c.id course_id,c.fullname,c.shortname, qa.id, qa.attempt, qa.quiz, qa.sumgrades AS grade, qa.timefinish, qa.timemodified, q.sumgrades, q.grade AS maxgrade");
+        $command->from(array("mdl_quiz q"));
+        $command->join('mdl_quiz_attempts qa', 'qa.quiz = q.id');
+        $command->join('mdl_course c', 'q.course = c.id');
+        $command->join('mdl_user u', 'u.id = qa.userid');
+        $command->where("state =  'finished'");
+        if(isset($_POST['course']) && !empty($_POST['course']))
+        {
+            $command->andWhere("q.course = ".$_POST['course']);
+            $command1->andWhere("id = ".$_POST['course']);
+        }
+        if(isset($_POST['ValEstudiante']) && !empty($_POST['ValEstudiante'])){
+            $command->andWhere('CONCAT(u.firstname," ",u.lastname) LIKE "%'.$_POST['ValEstudiante'].'%"');
+            $command->orWhere('u.email LIKE "%'.$_POST['ValEstudiante'].'%" ');
+            $command->orWhere('u.username LIKE "%'.$_POST['ValEstudiante'].'%" ');
+        }
+        if(isset($_POST['user']))
+        {
+            $command->andWhere("qa.userid = ".$_POST['user']);
+        }
+        $command->order("qa.userid,qa.timefinish ASC");
+    //        echo '<pre>'.$command->getText();
+    //        exit();
+        //Lo primero que hacemos es pasar toda la data a un arregloe es usuario => array(curso1=>array(),curso2=>array(),curso3=>array())
+        $data = array();
+        $idUsuario = -1;
+        $result = $command->queryAll(true);
+        foreach ($result as $key => $row) {
+            if($idUsuario != $row['userid']){
+                $idUsuario = $row['userid'];
+                $data[$idUsuario] = array();
+            }
+            $data[$idUsuario][$row['course_id']][] = $row;
+        }
+        
+        if(isset($_POST['ajax']))
+        {
+            if(count($result)> 0){
+            echo $this->renderPartial('reporteEvaluacionTbl', array(
+                'data'=>$data,
+                'header' => $command1->queryAll(true)
+            ));
+            }else{
+                echo 'No se han encontrado resultados.';
+            }
+        }else{        
+        $this->render('reporteEvaluaciones', array(
+            'data'=>$data,
+            'header' => $command1->queryAll(true)
+        ));
+        }
+    }
+
+
     public function actionPrioridadCurso()
     {
         $model = new AlmComplementoCursos();

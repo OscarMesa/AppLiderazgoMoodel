@@ -1,0 +1,2 @@
+[22-Apr-2014 23:20:45 America/Chicago] PHP Warning:  mysqli::mysqli() [<a href='mysqli.mysqli'>mysqli.mysqli</a>]: (HY000/1040): Too many connections in /home3/prograv3/public_html/moodle_pnl/lib/dml/mysqli_native_moodle_database.php on line 384
+[22-Apr-2014 23:20:45 America/Chicago] PHP Warning:  mysqli::mysqli() [<a href='mysqli.mysqli'>mysqli.mysqli</a>]: (HY000/1040): Too many connections in /home3/prograv3/public_html/moodle_pnl/lib/dml/mysqli_native_moodle_database.php on line 384

@@ -1,0 +1,1 @@
+[18-Dec-2013 13:08:36 America/Denver] PHP Warning:  mysqli::mysqli(): (HY000/2002): Can't connect to local MySQL server through socket '/var/lib/mysql/mysql.sock' (2) in /home/prograv3/public_html/moodle_pnl/lib/dml/mysqli_native_moodle_database.php on line 384

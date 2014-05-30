@@ -1,0 +1,3 @@
+https://moodle.org/mod/forum/discuss.php?d=43128
+http://docs.moodle.org/dev/Quiz_database_structure
+http://docs.moodle.org/dev/File:Question_engine_2_database.png

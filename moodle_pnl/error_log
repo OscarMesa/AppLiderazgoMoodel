@@ -1,0 +1,5 @@
+[14-Nov-2013 09:07:27 America/Denver] Can not obtain session lock
+[18-Dec-2013 13:08:36 America/Denver] Can not write database session - please verify max_allowed_packet is at least 4M!
+[01-Apr-2014 06:44:21 America/Chicago] Can not read or insert database sessions
+[08-Apr-2014 21:15:11 America/Chicago] Cannot read session record
+[15-Apr-2014 19:43:54 America/Chicago] Can not read or insert database sessions

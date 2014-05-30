@@ -1,0 +1,6 @@
+
+RewriteEngine on
+RewriteCond %{HTTP_HOST} ^curso\.vivirconpnl\.com$ [OR]
+RewriteCond %{HTTP_HOST} ^www\.curso\.vivirconpnl\.com$
+RewriteRule ^/?$ "http\:\/\/www\.vivirconpnl\.com\/moodle_pnl" [R=301,L]
+
