@@ -21,7 +21,7 @@ class UserIdentity extends CUserIdentity {
         $criteria->addCondition('users.username = ?');
         $criteria->params = array($username);
         $user = MdlUser::model()->find($criteria);
-        
+        //echo '<pre>'.$this->password; print_r($user);exit();
         if ($user === null) {
             return $this->errorCode = self::ERROR_USERNAME_INVALID;
         } else {
