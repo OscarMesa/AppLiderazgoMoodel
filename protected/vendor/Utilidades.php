@@ -102,6 +102,20 @@ class Utilidades {
         }
         return $delimiter;
     }
+    
+    public static function MaxNotaByDateFinish($rows)
+    {
+        $maxTime = -1;
+        $maxRow = null;
+        foreach ($rows as $row) {
+            if($row['timefinish'] > $maxTime)
+            {
+                $maxTime = $row['timefinish'];
+                $maxRow = $row;
+            }
+        }
+        return $maxRow;
+    }
 
 }
 

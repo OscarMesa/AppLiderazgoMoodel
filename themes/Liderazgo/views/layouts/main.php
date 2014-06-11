@@ -39,12 +39,12 @@ $this->widget('bootstrap.widgets.TbNavbar', array(
                             , 'itemOptions' => array(
                             ),
                         ),
-                        array('label' => 'Priorizar cursos'
+                        /*array('label' => 'Priorizar cursos'
                             , 'url' => array('/course/prioridadCurso')
                             , 'visible' => !Yii::app()->user->isGuest
                             , 'itemOptions' => array(
                             ),
-                        ),
+                        ),*/
                         array('label' => 'Reporte de evaluaciones'
                             , 'url' => array('/course/evaluacion')
                             , 'visible' => !Yii::app()->user->isGuest
