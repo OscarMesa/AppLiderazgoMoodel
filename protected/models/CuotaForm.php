@@ -20,14 +20,14 @@ class CuotaForm extends CFormModel {
         return array(
             // username and password are required
             array('csvFile, consecutivos', 'required'),
-            array('csvFile', 'file', 'allowEmpty' => true, 'types' => 'csv'),
+            array('csvFile', 'file', 'allowEmpty' => true, 'types' => 'txt'),
             array('consecutivos', 'numerical', 'integerOnly' => true)
         );
     }
 
     public function attributeLabels() {
         return array(
-            'csvFile' => 'Archivo csv',
+            'csvFile' => 'Archivo txt',
             'consecutivos' => 'Cantidad de cursos a activar por cuota',
         );
     }

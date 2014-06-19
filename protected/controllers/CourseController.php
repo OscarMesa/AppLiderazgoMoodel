@@ -50,7 +50,8 @@ class CourseController extends Controller {
         $command1->select('id,fullname,shortname,idnumber');
         $command1->from('mdl_course');
         $command1->order('idnumber ASC');
-        
+        $command1->where('id NOT IN(1,7,19,36,37,40,41)');
+        $command1->order('category ASC, sortorder ASC');
         
         $command = Yii::app()->db1->createCommand();
         $command->select("u.id userid,CONCAT(u.firstname,' ',u.lastname) username,c.id course_id,c.fullname,c.shortname, qa.id, qa.attempt, qa.quiz, qa.sumgrades AS grade, qa.timefinish, qa.timemodified, q.sumgrades, q.grade AS maxgrade");
@@ -58,7 +59,7 @@ class CourseController extends Controller {
         $command->join('mdl_quiz_attempts qa', 'qa.quiz = q.id');
         $command->join('mdl_course c', 'q.course = c.id');
         $command->join('mdl_user u', 'u.id = qa.userid');
-        $command->where("state =  'finished'");
+        $command->where("state =  'finished' AND c.id NOT IN(1,7,19,36,37,40,41)");
         if(isset($_POST['course']) && !empty($_POST['course']))
         {
             $command->andWhere("q.course = ".$_POST['course']);
@@ -73,7 +74,7 @@ class CourseController extends Controller {
         {
             $command->andWhere("qa.userid = ".$_POST['user']);
         }
-        $command->order("qa.userid,qa.timefinish ASC");
+        $command->order("qa.userid,qa.timefinish ASC,category ASC, sortorder ASC");
     //        echo '<pre>'.$command->getText();
     //        exit();
         //Lo primero que hacemos es pasar toda la data a un arregloe es usuario => array(curso1=>array(),curso2=>array(),curso3=>array())

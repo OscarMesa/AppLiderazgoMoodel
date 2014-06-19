@@ -7,7 +7,7 @@
 ?>
 <table>
     <tr><td><label class="">Curso:</label></td><td>Estudiante</td></tr>
-    <tr><td><?php echo CHtml::dropDownList('curso', '', CHtml::listData(MdlCourse::model()->findAll(), 'id', 'fullname'),array('prompt'=>'Todo','class'=>''))?></td>
+    <tr><td><?php echo CHtml::dropDownList('curso', '', CHtml::listData(MdlCourse::model()->findAll(array('order' => 'category ASC, sortorder ASC', 'condition' => 'id NOT IN(1,7,19,36,37,40,41)')), 'id', 'fullname'),array('prompt'=>'Todo','class'=>''))?></td>
         <td>    <div class="input-append">
                 <input class="span4" id="buscar-estudiante" type="text">
                 <button class="btn" id="estudiante" type="button">Buscar</button>

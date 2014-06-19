@@ -25,11 +25,11 @@ class UsuariosController extends Controller {
     public function accessRules() {
         return array(
             array('allow', // allow all users to perform 'index' and 'view' actions
-                'actions' => array('CambioPassword', 'guardarCambioNuevoPassword', 'recuperarPassword', 'activarDocente', 'activarUsuario', 'index', 'view', 'inicio', 'createAnonimo'),
+                'actions' => array('index', 'view', 'inicio'),
                 'users' => array('*'),
             ),
             array('allow', // allow authenticated user to perform 'create' and 'update' actions
-                'actions' => array('create', 'update', 'active', 'inactive', 'ajaxFiltroUsuarios'),
+                'actions' => array('CompletarInfoUsuarios', 'create', 'update', 'active'),
                 'users' => array('@'),
             ),
             array('allow', // allow admin user to perform 'admin' and 'delete' actions
@@ -42,13 +42,106 @@ class UsuariosController extends Controller {
         );
     }
 
+    public function actionCompletarInfoUsuarios() {
+        header('Content-Type: text/html; charset=UTF-8');
+        $errors = array();
+        if (isset($_FILES['txtFileMigra'])) {
+            $file = CUploadedFile::getInstanceByName('txtFileMigra');
+
+            if (($handle = fopen($file->tempName, 'r')) !== FALSE) {
+                $content = file_get_contents($file->tempName);
+                $data = explode("\n", mb_convert_encoding($content, 'UTF-8', mb_detect_encoding($content, 'UTF-8, ISO-8859-1', true)));
+                foreach ($data as $row) {
+                    $rowData = array_values(explode(',', $row));
+                    if (isset($rowData[2]) && $rowData[2] != 'clinom') {
+                        $usuario = $this->buscarEstudiante(str_replace('"', '', strtolower($rowData[2])));
+                        if ($usuario != null) {
+                            $cedula = new MdlUserInfoData();
+                            $cedula->userid = $usuario->id;
+                            $cedula->fieldid = 1;
+                            $cedula->data = str_replace('"','', $rowData[3]);
+                            $cedula->dataformat = 0;
+
+                            if(($x = MdlUserInfoData::model()->count('userid = ? AND fieldid=1', array($usuario->id))) <= 0) {
+                                //La cateoria 2 es Practitioner Instructor Personal de PNL y la 3 es Secretos para una vida plena con PNL! tabla mdl_course_categories
+                                $cedula->save();
+                            }
+                            $cat_curso = Yii::app()->db1->createCommand('
+                                                SELECT c.category
+                                                FROM mdl_user u
+                                                INNER JOIN `mdl_role_assignments` mra ON ( u.id = mra.userid )
+                                                INNER JOIN mdl_context mc ON ( mra.contextid = mc.id )
+                                                INNER JOIN mdl_course c ON ( c.id = mc.instanceid )
+                                                WHERE mc.contextlevel =50 AND u.id = ' . $usuario->id . ' AND c.category IN (2,3)
+                                                LIMIT 1')->queryAll();
+                            if($cat_curso == null){
+                                $cat_curso =  MdlUserInfoData::model()->find('userid = ? AND fieldid=2', array($usuario->id));
+                                if($cat_curso!=null)
+                                $cat_curso =  array(array('category'=>$cat_curso->data));
+                            }
+                            if (count($cat_curso) > 0) {
+                                if (MdlUserInfoData::model()->count('userid = ? AND fieldid=2 AND data=?', array($usuario->id, $cat_curso[0]['category'])) <= 0) {
+                                    $cat = new MdlUserInfoData();
+                                    $cat->userid = $usuario->id;
+                                    $cat->fieldid = 2;
+                                    $cat->data = $cat_curso[0]['category'];
+                                    $cat->dataformat = 0;
+                                    $cat->save();
+                                }
+                            }else {
+                                if (!isset($errors['sinCursoAsinarCat']))
+                                    $errors['sinCursoAsinarCat'] = '<h4>Los siguientes usuarios no tienen ningun curso vinculado o la categoria de los cursos.</h4>';
+                                $errors['sinCursoAsinarCat'] .= $rowData[2] . '<br/>';
+                            }
+                        } else {
+                            if (!isset($errors['lecturaUsuarios']))
+                                $errors['lecturaUsuarios'] = '<h4>Los siguientes usuarios no fueron encontrados en moodle, verifica que existan (No importa mayusculas o minusculas, lo importante es que sus nombres y apellidos coincidan con este.)</h4>';
+                            $errors['lecturaUsuarios'] .= $rowData[2] . '<br/>';
+                        }
+                    }
+                }
+            }
+        }
+
+        $this->render('completarInfoUsuarios', array(
+            'errors' => $errors
+        ));
+    }
+
+    /**
+     * @param array $nombre 
+     */
+    public function buscarEstudiante($nombre) {
+        $nombre = (explode(" ", $nombre));
+        $usuario = null;
+        $data = null;
+        if (count($nombre) == 6) {
+            $data = array($nombre[0] . ' ' . $nombre[1] . ' ' . $nombre[2], $nombre[3] . ' ' . $nombre[4] . ' ' . $nombre[5]);
+        } else if (count($nombre) == 5) {
+            $data = array($nombre[0] . ' ' . $nombre[1], $nombre[2] . ' ' . $nombre[3] . ' ' . $nombre[4]);
+//             print_r($data);exit();
+        } else if (count($nombre) == 4) {
+            $data = array($nombre[0] . ' ' . $nombre[1], $nombre[2] . ' ' . $nombre[3]);
+        } else if (count($nombre) == 3) {
+            $data = array($nombre[0] . ' ' . $nombre[1], $nombre[2]);
+        } else if (count($nombre) == 2) {
+            $data = array($nombre[0], $nombre[1]);
+        }
+
+        if ($data != null) {
+            $usuario = MdlUser::model()->find('LOWER(lastname) LIKE (\'%' . $data[0] . '%\') AND LOWER(firstname) LIKE (\'%' . $data[1] . '%\')');
+        }
+
+        return $usuario;
+    }
+
     public function actionInicio() {
         //print_r(Yii::app()->user);exit();
         if (!Yii::app()->user->isGuest) {
             // $this->render('application.views.site.inicio');
             $this->redirect(Yii::app()->getBaseUrl(true) . '/cuota/create');
         } else {
-            $this->redirect(Yii::app()->getBaseUrl(true).'/site/login');
+            $this->redirect(Yii::app()->getBaseUrl(true) . '/site/login');
         }
     }
 
@@ -59,347 +152,6 @@ class UsuariosController extends Controller {
     public function actionView($id) {
         $this->render('view', array(
             'model' => $this->loadModel($id),
-        ));
-    }
-
-    public function actionActivarDocente() {
-        if (isset(Yii::app()->user->idUsuario) && Yii::app()->user->esAdmin()) {
-//            print_r($_GET);
-//            exit();
-
-            if (isset($_GET['hash']) && isset($_GET['id']) && sha1('PoliAuLinkServer') == $_GET['hash']) {
-                $usuario = Usuarios::model()->findByPk($_GET['id'], 'state_usuario="not_confirmed_admin"');
-                if (count($usuario) > 0) {
-                    $usuario->state_usuario = 'active';
-                    $usuario->update();
-                    $this->EnviarMailNuevoDocente($usuario);
-                    $user = Yii::app()->getComponent('user');
-                    $user->setFlash(
-                            'success', "<strong>Exito!</strong> La activación ha sido exitosa. Se le ha enviado un correo de confirmación a este usuario."
-                    );
-                    $this->redirect(array(Yii::app()->defaultController));
-                } else {
-                    $user = Yii::app()->getComponent('user');
-                    $user->setFlash(
-                            'warning', "<strong>Atención!</strong> Posiblemente este usuario ya fue activado por el administrador. De lo contrario es posible que no exista."
-                    );
-                    $this->render('application.views.site.error');
-                }
-            } else {
-                $user = Yii::app()->getComponent('user');
-                $user->setFlash(
-                            'error', "<strong>Error!</strong> Usted no se encuentra autorizado para realizar esta acción."
-                );
-                $this->render('application.views.site.error');
-            }
-        } else {
-            $user = Yii::app()->getComponent('user');
-            $user->setFlash(
-                    'error', "<strong>Error!</strong> Para realizar esta acción debe iniciar sesión como administrador."
-            );
-            $this->redirect(array('site/login'));
-        }
-    }
-
-    public function actionCambioPassword() {
-        if (isset($_GET['hash']) && isset($_GET['id']) && sha1('PoliAuLinkServer') == $_GET['hash']) {
-            $usuario = Usuarios::model()->findByPk($_GET['id'], 'state_usuario="recover_password"');
-            if (count($usuario) > 0) {
-                $usuario->scenario = 'cambiopassword';
-                $this->render("nuevoPassword", array('model' => $usuario));
-            } else {
-                $user = Yii::app()->getComponent('user');
-                $user->setFlash(
-                        'error', "<strong>Error!</strong> Este usuario no tiene solicitudes para cambio de contraseña o posiblemente no exista."
-                );
-                $this->render('application.views.site.error');
-            }
-        } else {
-            $user = Yii::app()->getComponent('user');
-            $user->setFlash(
-                    'error', "<strong>Error!</strong> Usted no se encuentra autorizado para realizar esta acción."
-            );
-            $this->render('application.views.site.error');
-        }
-    }
-
-    public function actionGuardarCambioNuevoPassword() {
-        $model = new Usuarios();
-        $model->scenario = 'cambiopassword';
-        if (isset($_POST['Usuarios'])) {
-            $model->attributes = $_POST['Usuarios'];
-            $this->performAjaxValidation($model);
-            $model = $this->loadModel($_POST['Usuarios']['id_usuario']);
-            $model->contrasena = sha1($_POST['Usuarios']['contrasena']);
-            $model->state_usuario = 'active';
-            if ($model->update()) {
-                $user = Yii::app()->getComponent('user');
-                $user->setFlash(
-                        'success', "<strong>Exito!</strong> El cambio se realizo exitosamente."
-                );
-                $this->redirect(Yii::app()->getBaseUrl(true));
-            }
-        }
-        $this->render('nuevoPassword', array('model' => $model));
-    }
-
-    public function actionRecuperarPassword() {
-        $usuario = new Usuarios();
-        $usuario->scenario = 'registerwcaptcha';
-
-        if (isset($_POST['Usuarios'])) {
-            $usuario->attributes = $_POST['Usuarios'];
-            $this->performAjaxValidation($usuario);
-            //print_r($_POST);
-            $u = $usuario->find('correo=?', array($usuario->correo));
-
-            $this->enviarMailRecuperacionUsuario($u);
-            $u->state_usuario = 'recover_password';
-            $u->update();
-            $user = Yii::app()->getComponent('user');
-            $user->setFlash(
-                    'success', "<strong>Exito!</strong> Se ha enviado un correo con la informacón para realizar este cambío."
-            );
-            $this->redirect(Yii::app()->getBaseUrl(true));
-        }
-    }
-
-    public function actionActivarusuario() {
-        if (isset($_GET['hash']) && isset($_GET['id']) && sha1('PoliAuLinkServer') == $_GET['hash']) {
-            $usuario = Usuarios::model()->findByPk($_GET['id'], 'state_usuario="not_confirmed"');
-            if (count($usuario) > 0) {
-                $perfil = $usuario->getRandomPerfil();
-                $esDocente = FALSE;
-                if ($perfil->id_perfil == 4) {
-                    $esDocente = TRUE;
-                    $usuario->state_usuario = 'not_confirmed_admin';
-                    $mensaje = '<strong>Confirmación exitoso!</strong> Su cuenta a sido confimada exitosamente, aunque queda a la espera de que el administrador confirme su cuenta.';
-                } else {
-                    $mensaje = "<strong>Confirmación exitoso!</strong> Su cuenta a sido confimada exitosamente.";
-                    $usuario->state_usuario = 'active';
-                }
-                $usuario->update();
-                $user = Yii::app()->getComponent('user');
-                $user->setFlash(
-                        'success', $mensaje
-                );
-                $this->EnviarMailAdministradores($usuario, $esDocente);
-                $this->redirect(array('site/login'));
-            } else {
-                $user = Yii::app()->getComponent('user');
-                $user->setFlash(
-                        'warning', "<strong>Atención!</strong> Posiblemente este usuario ya fue activado o realmente no exite en la aplicación."
-                );
-                $this->render('application.views.site.error');
-            }
-        } else {
-            $user = Yii::app()->getComponent('user');
-            $user->setFlash(
-                    'error', "<strong>Error!</strong> Usted no se encuentra autorizado para realizar esta acción."
-            );
-            $this->render('application.views.site.error');
-        }
-    }
-
-    public function actionCreateAnonimo() {
-        $model = new Usuarios();
-
-        // Uncomment the following line if AJAX validation is needed
-        if (isset($_POST['Usuarios'])) {
-            $model->scenario = 'createanonimo';
-
-            $model->contrasena = sha1($_POST['Usuarios']['contrasena']);
-            $model->passConfirm = sha1($_POST['Usuarios']['passConfirm']);
-
-            $this->performAjaxValidation($model);
-
-            $model->attributes = $_POST['Usuarios'];
-
-            $model->state_usuario = 'not_confirmed';
-            if ($model->save()) {
-                $model->setPerfiles($_POST['Perfiles']);
-                $this->EnviarMailNuevoUsuario($model);
-                $user = Yii::app()->getComponent('user');
-                $user->setFlash(
-                        'success', "<strong>Rregistro exitoso!</strong> El usuario ha sido registrado con éxito, se ha enviado un correo para realizar la activación de la cuenta."
-                );
-                $this->redirect(array('site/login'));
-            } else {
-                $model->contrasena = '';
-                $model->passConfirm = '';
-            }
-        }
-        print_r($model->errors);
-    }
-
-    /**
-     * 
-     * @param Usuarios $usuario
-     */
-    public function enviarMailRecuperacionUsuario($usuario) {
-        Yii::import('ext.yii-mail.YiiMailMessage');
-        $message = new YiiMailMessage;
-        //this points to the file test.php inside the view path
-        $message->view = "recuperacionPassword";
-        $sid = 1;
-        $params = array('usuario' => $usuario);
-        $message->subject = 'Recuperar contraseña';
-        $message->setBody($params, 'text/html');
-        $message->addTo($usuario->correo);
-        $message->from = 'admin@poliAuLink.edu.co';
-        Yii::app()->mail->send($message);
-    }
-
-    /**
-     * 
-     * @param Usuarios $usuario
-     */
-    public function EnviarMailNuevoDocente($usuario) {
-        Yii::import('ext.yii-mail.YiiMailMessage');
-        $message = new YiiMailMessage;
-        //this points to the file test.php inside the view path
-        $message->view = "confirmarDocente";
-        $sid = 1;
-        $params = array('usuario' => $usuario);
-        $message->subject = 'Activacón exitosa por administrador';
-        $message->setBody($params, 'text/html');
-        $message->addTo($usuario->correo);
-        $message->from = 'admin@poliAuLink.edu.co';
-        Yii::app()->mail->send($message);
-    }
-
-    /**
-     * 
-     * @param Usuarios $usuario
-     */
-    public function EnviarMailNuevoUsuario($usuario) {
-        Yii::import('ext.yii-mail.YiiMailMessage');
-        $message = new YiiMailMessage;
-        //this points to the file test.php inside the view path
-        $message->view = "nuevoUsuario";
-        $sid = 1;
-        $params = array('usuario' => $usuario);
-        $message->subject = 'Registro exitoso';
-        $message->setBody($params, 'text/html');
-        $message->addTo($usuario->correo);
-        $message->from = 'admin@poliAuLink.edu.co';
-        Yii::app()->mail->send($message);
-    }
-
-    /**
-     * 
-     * @param Usuarios $usuario
-     */
-    public function EnviarMailAdministradores($usuario, $esDocente) {
-        $administradores = Usuarios::model()->with(array('perfiles' => array('alias' => 'p')))->findAll('p.id_perfil=?', array(6));
-        Yii::import('ext.yii-mail.YiiMailMessage');
-        foreach ($administradores as $admin) {
-            $message = new YiiMailMessage;
-            //this points to the file test.php inside the view path
-            $message->view = "nuevoUsuarioAdmin";
-            $sid = 1;
-            $params = array('usuario' => $usuario, 'admin' => $admin, 'esDocente' => $esDocente);
-            $message->subject = 'Nuevo usuario registrado.';
-            $message->setBody($params, 'text/html');
-            $message->addTo($admin->correo);
-            $message->from = 'admin@poliAuLink.edu.co';
-            Yii::app()->mail->send($message);
-        }
-    }
-
-    /**
-     * Creates a new model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     */
-    public function actioncreate() {
-        $model = new Usuarios;
-
-        // Uncomment the following line if AJAX validation is needed
-        $this->performAjaxValidation($model);
-
-        if (isset($_POST['Usuarios'])) {
-//             echo '<pre>';
-//            print_r($_POST);exit();
-            $model->attributes = $_POST['Usuarios'];
-//            
-//            exit();
-            $model->contrasena = sha1($_POST['Usuarios']['contrasena']);
-            $model->passConfirm = sha1($_POST['Usuarios']['passConfirm']);
-            if ($model->save()) {
-                $model->setUniversidad($_POST['Universidad']);
-                $model->setPerfiles($_POST['Perfiles']);
-                $this->redirect(array('view', 'id' => $model->id_usuario));
-            } else {
-                $model->contrasena = '';
-                $model->passConfirm = '';
-            }
-        }
-
-        $this->render('create', array(
-            'model' => $model,
-        ));
-    }
-
-    /**
-     * Updates a particular model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id the ID of the model to be updated
-     */
-    public function actionUpdate($id) {
-        $model = $this->loadModel($id);
-        // Uncomment the following line if AJAX validation is needed
-        // $this->performAjaxValidation($model);
-
-        if (isset($_POST['Usuarios'])) {
-            $model->attributes = $_POST['Usuarios'];
-            if ($model->save())
-                $this->redirect(array('view', 'id' => $model->id_usuario));
-        }
-
-        $this->render('update', array(
-            'model' => $model,
-        ));
-    }
-
-    /**
-     * Deletes a particular model.
-     * If deletion is successful, the browser will be redirected to the 'admin' page.
-     * @param integer $id the ID of the model to be deleted
-     */
-    public function actionDelete($id) {
-        if (Yii::app()->request->isPostRequest) {
-            // we only allow deletion via POST request
-            $this->loadModel($id)->delete();
-
-            // if AJAX request (triggered by deletion via admin grid view), we should not redirect the browser
-            if (!isset($_GET['ajax']))
-                $this->redirect(isset($_POST['returnUrl']) ? $_POST['returnUrl'] : array('admin'));
-        }
-        else
-            throw new CHttpException(400, 'Invalid request. Please do not repeat this request again.');
-    }
-
-    /**
-     * Lists all models.
-     */
-    public function actionIndex() {
-        $dataProvider = new CActiveDataProvider('Usuarios');
-        $this->render('index', array(
-            'dataProvider' => $dataProvider,
-        ));
-    }
-
-    /**
-     * Manages all models.
-     */
-    public function actionAdmin() {
-        $model = new Usuarios('search');
-        $model->unsetAttributes();  // clear any default values
-        if (isset($_GET['Usuarios']))
-            $model->attributes = $_GET['Usuarios'];
-
-        $this->render('admin', array(
-            'model' => $model,
         ));
     }
 
