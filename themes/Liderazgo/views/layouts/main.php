@@ -39,13 +39,13 @@ $this->widget('bootstrap.widgets.TbNavbar', array(
                             , 'itemOptions' => array(
                             ),
                         ),
-                        array('label' => 'Completar usuarios'
+                        /*array('label' => 'Completar usuarios'
                             , 'url' => array('/usuarios/completarInfoUsuarios')
                             , 'visible' => !Yii::app()->user->isGuest
                             , 'itemOptions' => array(
                             ),
                         ),
-                        /*array('label' => 'Priorizar cursos'
+                        array('label' => 'Priorizar cursos'
                             , 'url' => array('/course/prioridadCurso')
                             , 'visible' => !Yii::app()->user->isGuest
                             , 'itemOptions' => array(
