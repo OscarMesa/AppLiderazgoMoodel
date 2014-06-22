@@ -17,6 +17,7 @@ body{
 
 #curso #panel_izq{
 	float:left;
+        margin-right: -16px;
 	width:20%;
 	background: url(../images/fondo_panel_izq.png);
 }

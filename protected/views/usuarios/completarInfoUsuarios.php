@@ -6,9 +6,14 @@
 )); ?>
 
         <?php
-        if(count($errors)>0){
+        if(isset($errors[0]) && $errors[0] == 'NotErros'){ ?>
+<div class="alert alert-success" style="margin-top: -10px">
+                <a href="#" class="close" data-dismiss="alert">&times;</a>
+                Todos los usuarios fueron actualizados satisfatoriamente.
+            </div>
+        <?php } else if(count($errors)>0){
         ?>
-            <div class="alert alert-block alert-error"><p>Por favor corrija los siguientes errores:</p>
+            <div class="alert alert-block alert-error" style="margin-top: -10px"><p>Por favor corrija los siguientes errores:</p>
                 <ul>
                     <?php 
                         foreach($errors as $key => $error) {

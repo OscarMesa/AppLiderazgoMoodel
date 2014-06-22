@@ -3,6 +3,11 @@
 	'enableAjaxValidation'=>false,
         'htmlOptions'=>array('enctype'=>'multipart/form-data'),
 )); ?>
+<style type="text/css">
+    .alert{
+        margin-top: -10px;
+    }
+</style>
         <?php echo $form->errorSummary($model); ?>
 
 	<p class="help-block">Campos con <span class="required">*</span> son requeridos.</p>

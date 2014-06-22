@@ -51,21 +51,25 @@ class UsuariosController extends Controller {
             if (($handle = fopen($file->tempName, 'r')) !== FALSE) {
                 $content = file_get_contents($file->tempName);
                 $data = explode("\n", mb_convert_encoding($content, 'UTF-8', mb_detect_encoding($content, 'UTF-8, ISO-8859-1', true)));
+                
                 foreach ($data as $row) {
-                    $rowData = array_values(explode(',', $row));
-                    if (isset($rowData[2]) && $rowData[2] != 'clinom') {
-                        $usuario = $this->buscarEstudiante(str_replace('"', '', strtolower($rowData[2])));
+                    $rowData = array_values(explode('	', $row));
+
+                    if (isset($rowData[1]) && trim(strtolower($rowData[1])) != 'username') {
+                        $usuario = $this->buscarEstudiante(str_replace('"', '', strtolower($rowData[1])));
+//                        print_r($usuario);exit();
                         if ($usuario != null) {
                             $cedula = new MdlUserInfoData();
                             $cedula->userid = $usuario->id;
                             $cedula->fieldid = 1;
-                            $cedula->data = str_replace('"','', $rowData[3]);
+                            $cedula->data = $rowData[0];
                             $cedula->dataformat = 0;
 
                             if(($x = MdlUserInfoData::model()->count('userid = ? AND fieldid=1', array($usuario->id))) <= 0) {
                                 //La cateoria 2 es Practitioner Instructor Personal de PNL y la 3 es Secretos para una vida plena con PNL! tabla mdl_course_categories
                                 $cedula->save();
                             }
+                            //Con esto buscamos el primer curso donde  este matriculado el estudiante, con el fin de guardarlo
                             $cat_curso = Yii::app()->db1->createCommand('
                                                 SELECT c.category
                                                 FROM mdl_user u
@@ -95,10 +99,14 @@ class UsuariosController extends Controller {
                             }
                         } else {
                             if (!isset($errors['lecturaUsuarios']))
-                                $errors['lecturaUsuarios'] = '<h4>Los siguientes usuarios no fueron encontrados en moodle, verifica que existan (No importa mayusculas o minusculas, lo importante es que sus nombres y apellidos coincidan con este.)</h4>';
-                            $errors['lecturaUsuarios'] .= $rowData[2] . '<br/>';
+                                $errors['lecturaUsuarios'] = '<h4>Los siguientes nombres de usuario no fueron encontrados en moodle, verifica que existan (No importa mayusculas o minusculas, lo importante es que sus nombres y apellidos coincidan con este.)</h4>';
+                            $errors['lecturaUsuarios'] .= $rowData[1] . '<br/>';
                         }
-                    }
+                   }
+                }
+                if(count($errors)<=0)
+                {
+                    $errors[] = 'NotErros';
                 }
             }
         }
@@ -109,29 +117,12 @@ class UsuariosController extends Controller {
     }
 
     /**
-     * @param array $nombre 
+     * Este metodo se encaga de buscar un estudiante por su nombre de usuario.
+     * @param array $nombre_usuario 
      */
-    public function buscarEstudiante($nombre) {
-        $nombre = (explode(" ", $nombre));
-        $usuario = null;
-        $data = null;
-        if (count($nombre) == 6) {
-            $data = array($nombre[0] . ' ' . $nombre[1] . ' ' . $nombre[2], $nombre[3] . ' ' . $nombre[4] . ' ' . $nombre[5]);
-        } else if (count($nombre) == 5) {
-            $data = array($nombre[0] . ' ' . $nombre[1], $nombre[2] . ' ' . $nombre[3] . ' ' . $nombre[4]);
-//             print_r($data);exit();
-        } else if (count($nombre) == 4) {
-            $data = array($nombre[0] . ' ' . $nombre[1], $nombre[2] . ' ' . $nombre[3]);
-        } else if (count($nombre) == 3) {
-            $data = array($nombre[0] . ' ' . $nombre[1], $nombre[2]);
-        } else if (count($nombre) == 2) {
-            $data = array($nombre[0], $nombre[1]);
-        }
-
-        if ($data != null) {
-            $usuario = MdlUser::model()->find('LOWER(lastname) LIKE (\'%' . $data[0] . '%\') AND LOWER(firstname) LIKE (\'%' . $data[1] . '%\')');
-        }
-
+    public function buscarEstudiante($nombre_usuario) {
+        
+        $usuario = MdlUser::model()->find('username = ?', array(strtolower(trim($nombre_usuario))));
         return $usuario;
     }
 
