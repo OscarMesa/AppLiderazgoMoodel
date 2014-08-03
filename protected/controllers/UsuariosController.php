@@ -65,10 +65,16 @@ class UsuariosController extends Controller {
                                 $cedula->fieldid = 1;
                                 $cedula->data = $rowData[0];
                                 $cedula->dataformat = 0;
-
-                                if (($x = MdlUserInfoData::model()->count('userid = ? AND fieldid=1', array($usuario->id))) <= 0) {
+                                $x = MdlUserInfoData::model()->find('userid = ? AND fieldid=1', array($usuario->id));
+//                                echo '<pre>';
+//                                var_dump($x);die();
+                            
+                                if ($x == null) {
                                     //La cateoria 2 es Practitioner Instructor Personal de PNL y la 3 es Secretos para una vida plena con PNL! tabla mdl_course_categories
                                     $cedula->save();
+                                }else{
+                                    $x->data = $rowData[0];
+                                    $x->save();
                                 }
                                 //Con esto buscamos el primer curso donde  este matriculado el estudiante, con el fin de guardarlo
                                 $cat_curso = Yii::app()->db1->createCommand('
@@ -83,15 +89,21 @@ class UsuariosController extends Controller {
                                     $cat_curso = MdlUserInfoData::model()->find('userid = ? AND fieldid=2', array($usuario->id));
                                     if ($cat_curso != null)
                                         $cat_curso = array(array('category' => $cat_curso->data));
+                                    else
+                                        $cat_curso = array(array('category' => 2));
                                 }
                                 if (count($cat_curso) > 0) {
-                                    if (MdlUserInfoData::model()->count('userid = ? AND fieldid=2 AND data=?', array($usuario->id, $cat_curso[0]['category'])) <= 0) {
+                                    $x = MdlUserInfoData::model()->find('userid = ? AND fieldid=2 AND data=?', array($usuario->id, $cat_curso[0]['category']));
+                                    if ($x == null) {
                                         $cat = new MdlUserInfoData();
                                         $cat->userid = $usuario->id;
                                         $cat->fieldid = 2;
                                         $cat->data = $cat_curso[0]['category'];
                                         $cat->dataformat = 0;
                                         $cat->save();
+                                    }else{
+                                        $x->data = $cat_curso[0]['category'];
+                                        $x->save();
                                     }
                                 } else {
                                     if (!isset($errors['sinCursoAsinarCat']))
