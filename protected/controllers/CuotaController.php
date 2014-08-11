@@ -41,14 +41,10 @@ class CuotaController extends Controller {
             ),
         );
     }
-
-    public function actionCreate() {
-        $errors = array();
-        $prioridad = array(); // este arreglo va a contener los cursos ordenados segun su orden natural
-        //$prioridad2 = array();
-        // Buscamos los cursos y los ordenamos por el campo category y sortorder. Este ultimo es el orden natural que toma dentro de moodle. 
-        $prioridad1 = MdlCourse::model()->findAll(array('select' => 'id,sortorder,category,fullname,shortname,idnumber', 'order' => 'category ASC, sortorder ASC', 'condition' => 'id NOT IN(1,7,19,36,37,40,41)'));
-        //  echo '<pre>';
+    
+    public function getCursosPriorizados($prioridad1)
+    {
+        $prioridad = array();
         $c = -1;
         $k = 1;
         foreach ($prioridad1 as $prd) {
@@ -61,10 +57,22 @@ class CuotaController extends Controller {
             $p = new AlmComplementoCursos();
             $p->prioridad = $k;
             $p->id_curso_mdl = $prd['id'];
+            $p->MdlCourse = $prd;
             $prioridad[$c][] = $p;
             //$prioridad[$c][] = $prd;
         }
-       // echo '<pre>';print_r($prioridad);exit();
+        return $prioridad;
+    }
+
+    public function actionCreate() {
+        $errors = array();
+        $prioridad = array(); // este arreglo va a contener los cursos ordenados segun su orden natural
+        //$prioridad2 = array();
+        // Buscamos los cursos y los ordenamos por el campo category y sortorder. Este ultimo es el orden natural que toma dentro de moodle. 
+        
+        $prioridad1 = MdlCourse::model()->findAll(array('select' => 'id,sortorder,category,fullname,shortname,idnumber', 'order' => 'category ASC, sortorder ASC', 'condition' => 'id NOT IN(1,7,19,36,37,40,41)'));
+        $prioridad = $this->getCursosPriorizados($prioridad1);
+    
         $model = new CuotaForm();
         if (isset($_POST['CuotaForm'])) {
             $model->attributes = $_POST['CuotaForm'];
@@ -90,16 +98,22 @@ class CuotaController extends Controller {
                                         //Procedemos a leer las cuotas por cada estudiante.
                                         $id_catgoria = $categoria->data;
                                         if (isset($prioridad[$id_catgoria])) {
-//                                        echo '<pre>';
-//                                    print_r($prioridad[$id_catgoria]);
-//                                        exit();
+                                            $model->cuota =  $rowData[5];
+                                            $model->usuario =  $usuario->id;
                                             //Si en este campo de cuoatra llega un -1 vamos a activar todos
                                             if ($rowData[4] == -1) {
+                                                $prioridad1 = MdlCourse::model()->findAll(array('select' => 'id,sortorder,category,fullname,shortname,idnumber', 'order' => 'category ASC, sortorder ASC', 'condition' => ''));
+                                                $prioridad = $this->getCursosPriorizados($prioridad1);
                                                 $this->activarTodosLosCursos($prioridad[$id_catgoria], $usuario->id);
-                                             //   break;
-                                            } else  {
+                                                 $model->cuota = -1;
+                                                $this->regitrarLogMovimientoCuota($model);
+                                                $prioridad1 = MdlCourse::model()->findAll(array('select' => 'id,sortorder,category,fullname,shortname,idnumber', 'order' => 'category ASC, sortorder ASC', 'condition' => 'id NOT IN(1,7,19,36,37,40,41)'));
+                                                $prioridad = $this->getCursosPriorizados($prioridad1);
+                                            } else {
+                                                $max_curso = $this->getMaxCursoByUser($usuario->id);
                                                 //$rowData en la posicion 5 tiene la cuota a activar.
-                                                $this->activarCursosxCuota($prioridad[$id_catgoria], $rowData[5], $_POST['CuotaForm']['consecutivos'], $usuario->id);
+                                                $this->activarCursosxCuotaMAX($prioridad[$id_catgoria], $rowData[5], $_POST['CuotaForm']['consecutivos'], $usuario->id, $max_curso);
+                                                $this->regitrarLogMovimientoCuota($model);
                                             }
                                         } else {
                                             $errors = array();
@@ -107,28 +121,27 @@ class CuotaController extends Controller {
                                         }
                                     }
                                 } else {
-                                   // 
+                                    // 
                                     if (!isset($errors['usuarioInexixtente']))
                                         $errors['usuarioInexixtente'] = "<h4>Los siguientes usuarios no se encontraron con la cedula, o posiblemente no existan</h4><br/>";
-                                    $errors['usuarioInexixtente'] .= $rowData[2].'<br/>';
+                                    $errors['usuarioInexixtente'] .= $rowData[2] . '<br/>';
 //                                    echo 'esta son los tales ..... ';exit();
                                 }
                             }else {
                                 if (!isset($errors['cuotaTra']))
                                     $errors['cuotaTra'] = "<h4>Los siguientes usuarios son morosos.</h4><br/>";
                                 $errors['cuotaTra'] .= $rowData[2] . '. ' . $rowData[4] . ' cuota(s).<br/>';
-                           //     echo 'esta son los tales ..... ';
+                                //     echo 'esta son los tales ..... ';
                             }
                         }
                     }
-                    if(count($errors) == 0)
-                    {
-                        $this->regitrarLogMovimientoCuota($model);
+                    if (count($errors) == 0) {
+                        //$this->regitrarLogMovimientoCuota($model);
                         $user = Yii::app()->getComponent('user');
                         $user->setFlash(
                                 'success', "<strong>Exito!</strong> Los cambios han sido almacenados con éxito."
                         );
-                    }else{
+                    } else {
                         $model->addErrors($errors);
                     }
                 }
@@ -144,13 +157,68 @@ class CuotaController extends Controller {
             $this->activarCurso($AlmComplCurso, $id_usuario);
         }
     }
-
+    /**
+     * Este metodo se encarga de registrar cuando a un usuario se le registe una cuota 
+     * @param CuotaForm $model
+     */
     public function regitrarLogMovimientoCuota($model) {
         $registro = new AlmRegistroCuota();
         $registro->nombre_archivo = $model->csvFile->name;
-        $registro->id_user_mdl = Yii::app()->user->getId();
+        $registro->id_user_mdl = $model->usuario;
         $registro->fecha_creacion = date('Y-m-d H:i:s');
+        $registro->cuota = $model->cuota;
         $registro->save();
+    }
+
+    public function activarCursosxCuotaMAX($vectorPrioridad, $num_cuota, $cantidadCursosActivarxCuota, $id_usario, $max_curso) {
+        if ($max_curso != null) {
+           // echo $cantidadCursosActivarxCuota.'<pre>';
+            $cuotas_activas = 1;
+            for ($j = 0; $j < count($vectorPrioridad); $j = $j + 1) {
+                $curso = $vectorPrioridad[$j];
+                if($max_curso['sortorder'] < $curso->MdlCourse->sortorder)
+                {
+                    $AlmComplCurso = $vectorPrioridad[$j];
+                    $this->activarCurso($AlmComplCurso, $id_usario);
+                    $cuotas_activas++;
+                    if($cuotas_activas>$cantidadCursosActivarxCuota)break;
+                }
+                
+            }
+        } else {
+            for ($j = 0; $j < $cantidadCursosActivarxCuota; $j = $j + 1) {
+                $AlmComplCurso = $vectorPrioridad[$j];
+                $this->activarCurso($AlmComplCurso, $id_usario);
+            }
+        }
+    }
+
+    /**
+     * Este metodo se encarga de buscar el maximo curso en su respectivo orden, que tenga asociado un estudiante.
+     * @param type $id_usuario
+     * @return null
+     */
+    public function getMaxCursoByUser($id_usuario) {
+        $q = Yii::app()->db1->createCommand("SELECT c.*
+            FROM mdl_user u  
+            INNER JOIN `mdl_role_assignments` mra ON ( u.id = mra.userid )
+            INNER JOIN mdl_context mc ON ( mra.contextid = mc.id )
+            INNER JOIN mdl_course c ON ( c.id = mc.instanceid )
+             WHERE mc.contextlevel =50 AND u.id = ?
+            AND (c.sortorder)  = ( 
+            SELECT  MAX(c.sortorder) 
+            FROM mdl_user u  
+            INNER JOIN `mdl_role_assignments` mra ON ( u.id = mra.userid )
+            INNER JOIN mdl_context mc ON ( mra.contextid = mc.id )
+            INNER JOIN mdl_course c ON ( c.id = mc.instanceid )
+             WHERE mc.contextlevel =50 AND u.id = ?
+            )");
+        $r = $q->queryRow(true, array($id_usuario, $id_usuario));
+        if (!$r) {
+            return null;
+        } else {
+            return $r;
+        }
     }
 
     /**

@@ -9,6 +9,7 @@
  */
 class AlmComplementoCursos extends CActiveRecord
 {
+    public $MdlCourse;
 	/**
 	 * @return string the associated database table name
 	 */
@@ -50,7 +51,7 @@ class AlmComplementoCursos extends CActiveRecord
 	public function attributeLabels()
 	{
 		return array(
-			'id_curso_mdl' => 'curso',
+			'id_curso_mdl' => 'Id Curso Mdl',
 			'prioridad' => 'Prioridad',
 		);
 	}

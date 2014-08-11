@@ -15,13 +15,15 @@ class CuotaForm extends CFormModel {
 
     public $csvFile;
     public $consecutivos;
+    public $cuota;
+    public $usuario;
 
     public function rules() {
         return array(
             // username and password are required
             array('csvFile, consecutivos', 'required'),
             array('csvFile', 'file', 'allowEmpty' => true, 'types' => 'txt'),
-            array('consecutivos', 'numerical', 'integerOnly' => true)
+            array('consecutivos,cuota,usuario', 'numerical', 'integerOnly' => true)
         );
     }
 

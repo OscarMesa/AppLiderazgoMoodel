@@ -112,8 +112,8 @@ class UsuariosController extends Controller {
                                 }
                             } else {
                                 if (!isset($errors['lecturaUsuarios']))
-                                    $errors['lecturaUsuarios'] = '<h4>Los siguientes nombres de usuario no fueron encontrados en moodle, verifica que existan (No importa mayusculas o minusculas, lo importante es que sus nombres y apellidos coincidan con este.)</h4>';
-                                $errors['lecturaUsuarios'] .= $rowData[1] . '<br/>';
+                                    $errors['lecturaUsuarios'] = '<h4>Los siguientes celudas no fueron encontrados en moodle, verifica que los nombres de usuarios existan (No importa mayusculas o minusculas, lo importante es que sus nombres y apellidos coincidan con este.)</h4>';
+                                $errors['lecturaUsuarios'] .= $rowData[0] . '<br/>';
                             }
                         }
                     }

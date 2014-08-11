@@ -1,0 +1,2 @@
+prfcod,vtanum,clinom,clicod,cuoatra,cuopag,saldofac,vlratra
+"015",6070,"Usuario 1","9876543",0,1,250000.0000,90000.0000

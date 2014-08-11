@@ -7,6 +7,7 @@
  * @property integer $id
  * @property string $nombre_archivo
  * @property integer $id_user_mdl
+ * @property integer $cuota
  * @property string $fecha_creacion
  */
 class AlmRegistroCuota extends CActiveRecord
@@ -28,11 +29,11 @@ class AlmRegistroCuota extends CActiveRecord
 		// will receive user inputs.
 		return array(
 			array('nombre_archivo, id_user_mdl, fecha_creacion', 'required'),
-			array('id_user_mdl', 'numerical', 'integerOnly'=>true),
+			array('id_user_mdl, cuota', 'numerical', 'integerOnly'=>true),
 			array('nombre_archivo', 'length', 'max'=>100),
 			// The following rule is used by search().
 			// @todo Please remove those attributes that should not be searched.
-			array('id, nombre_archivo, id_user_mdl, fecha_creacion', 'safe', 'on'=>'search'),
+			array('id, nombre_archivo, id_user_mdl, cuota, fecha_creacion', 'safe', 'on'=>'search'),
 		);
 	}
 
@@ -56,6 +57,7 @@ class AlmRegistroCuota extends CActiveRecord
 			'id' => 'ID',
 			'nombre_archivo' => 'Nombre Archivo',
 			'id_user_mdl' => 'Id User Mdl',
+			'cuota' => 'Cuota',
 			'fecha_creacion' => 'Fecha Creacion',
 		);
 	}
@@ -81,6 +83,7 @@ class AlmRegistroCuota extends CActiveRecord
 		$criteria->compare('id',$this->id);
 		$criteria->compare('nombre_archivo',$this->nombre_archivo,true);
 		$criteria->compare('id_user_mdl',$this->id_user_mdl);
+		$criteria->compare('cuota',$this->cuota);
 		$criteria->compare('fecha_creacion',$this->fecha_creacion,true);
 
 		return new CActiveDataProvider($this, array(

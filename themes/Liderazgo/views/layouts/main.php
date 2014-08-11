@@ -33,13 +33,13 @@ $this->widget('bootstrap.widgets.TbNavbar', array(
                                 'class' => 'menu_ingreso menu_entrar'
                             ),
                         ),
-                        array('label' => 'Subir archivo'
+                        array('label' => 'Archivo de cartera'
                             , 'url' => array('/cuota/create')
                             , 'visible' => !Yii::app()->user->isGuest
                             , 'itemOptions' => array(
                             ),
                         ),
-                        array('label' => 'Completar usuarios'
+                        array('label' => 'Archivo de usuarios'
                             , 'url' => array('/usuarios/completarInfoUsuarios')
                             , 'visible' => !Yii::app()->user->isGuest
                             , 'itemOptions' => array(
@@ -57,7 +57,7 @@ $this->widget('bootstrap.widgets.TbNavbar', array(
                             , 'itemOptions' => array(
                             ),
                         ),
-                        array('label' => 'Contactanos', 'url' => array('/site/contact')),
+                      //  array('label' => 'Contactanos', 'url' => array('/site/contact')),
                         array('label' => 'Salir (' . Yii::app()->user->name . ')'
                             , 'url' => array('/site/logout')
                             , 'visible' => !Yii::app()->user->isGuest
