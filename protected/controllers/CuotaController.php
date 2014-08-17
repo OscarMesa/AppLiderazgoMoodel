@@ -84,7 +84,7 @@ class CuotaController extends Controller {
                     $content = file_get_contents($model->csvFile->tempName);
                     $data = explode("\n", mb_convert_encoding($content, 'UTF-8', mb_detect_encoding($content, 'UTF-8, ISO-8859-1', true)));
                     // print_r($prioridad);
-
+                    $errors = array();
                     foreach ($data as $row) {
                         $rowData = explode(',', str_replace('"', '', $row));
                         if (count($rowData) >= 3 && $rowData[2] != 'clinom') {
@@ -98,7 +98,6 @@ class CuotaController extends Controller {
                                         //Procedemos a leer las cuotas por cada estudiante.
                                         $id_catgoria = $categoria->data;
                                         if (isset($prioridad[$id_catgoria])) {
-                                            $model->cuota =  $rowData[5];
                                             $model->usuario =  $usuario->id;
                                             //Si en este campo de cuoatra llega un -1 vamos a activar todos
                                             if ($rowData[4] == -1) {
@@ -110,13 +109,23 @@ class CuotaController extends Controller {
                                                 $prioridad1 = MdlCourse::model()->findAll(array('select' => 'id,sortorder,category,fullname,shortname,idnumber', 'order' => 'category ASC, sortorder ASC', 'condition' => 'id NOT IN(1,7,19,36,37,40,41)'));
                                                 $prioridad = $this->getCursosPriorizados($prioridad1);
                                             } else {
-                                                $max_curso = $this->getMaxCursoByUser($usuario->id);
                                                 //$rowData en la posicion 5 tiene la cuota a activar.
-                                                $this->activarCursosxCuotaMAX($prioridad[$id_catgoria], $rowData[5], $_POST['CuotaForm']['consecutivos'], $usuario->id, $max_curso);
-                                                $this->regitrarLogMovimientoCuota($model);
+                                                if(!$this->isCuotaActiva($rowData[5],$usuario->id)){
+                                                    $max_number_cuota = $this->buscarCutaMaximaByUsuario($usuario->id);
+                                                    for($i = $max_number_cuota + 1; $i<=$rowData[5]; $i++)
+                                                    {
+                                                        $max_curso = $this->getMaxCursoByUser($usuario->id);
+                                                        $model->cuota =  $i;
+                                                        $this->activarCursosxCuotaMAX($prioridad[$id_catgoria], $i, $_POST['CuotaForm']['consecutivos'], $usuario->id, $max_curso);
+                                                        $this->regitrarLogMovimientoCuota($model);
+                                                    }
+                                                }else{
+                                                    if (!isset($errors['existeCuota']))
+                                                        $errors['existeCuota'] = "<h4>A los siguientes usuarios se les esta tratando de activar una cuota ya registrada.</h4><br/>";
+                                                    $errors['existeCuota'] .= $rowData[2] . ' con número de cuota '.$rowData[5].'<br/>';
+                                                }
                                             }
                                         } else {
-                                            $errors = array();
                                             $errors[] = "Al parecer una de las categorias en el archivo no existe en moodle, por favor verifique.";
                                         }
                                     }
@@ -150,6 +159,30 @@ class CuotaController extends Controller {
         $this->render('subirCuota', array(
             'model' => $model,
         ));
+    }
+    
+    /**
+     * Este metodo se encarga de entregar la ultima cuota activa
+     * @param type $id_usuario
+     * @return type int
+     */
+    public function buscarCutaMaximaByUsuario($id_usuario)
+    {
+        $registro = AlmRegistroCuota::model()->find(array('condition'=>'id_user_mdl=?','select'=>'MAX(cuota) AS cuota','params'=>array($id_usuario)));
+        return $registro->cuota == null?0:$registro->cuota;
+    }
+    
+    /**
+     * Este metodo se encarga de verificar si una cuota ya se le habia activado a un usuario
+     * @param type $numeroCuota
+     * @param type $idUsuario
+     * @return boolean
+     */
+    public function isCuotaActiva($numeroCuota, $idUsuario)
+    {
+        $registro = AlmRegistroCuota::model()->find('id_user_mdl = ? AND cuota = ?',array($idUsuario,$numeroCuota));
+        return $registro == null ? FALSE : TRUE;
+            
     }
 
     public function activarTodosLosCursos($vecPridad, $id_usuario) {
