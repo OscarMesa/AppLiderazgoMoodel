@@ -207,7 +207,7 @@ if (!defined('PASSWORD_BCRYPT')) {
                 return false;
             }
 //return true;
-            echo $password;$ret = crypt($password, $hash);
+           // echo $password;$ret = crypt($password, $hash);
             if (!is_string($ret) || strlen($ret) != strlen($hash) || strlen($ret) <= 13) {
                 return false;
             }
