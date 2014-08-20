@@ -113,7 +113,7 @@ class SiteController extends Controller {
             $user = Yii::app()->getComponent('user');
             //$usuario = MdlUser::model()->find('username=?', array($model->username));
 
-            if ($model->validate() && $model->login()) {
+            if ($model->login()) {
                 $this->redirect(Yii::app()->baseUrl . '/' . Yii::app()->defaultController);
             }
             //  }
