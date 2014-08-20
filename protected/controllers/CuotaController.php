@@ -100,7 +100,7 @@ class CuotaController extends Controller {
                                         if (isset($prioridad[$id_catgoria])) {
                                             $model->usuario =  $usuario->id;
                                             //Si en este campo de cuoatra llega un -1 vamos a activar todos
-                                            if ($rowData[4] == -1) {
+                                            if ($rowData[4] == -1 || intval($rowData[7]) <= 0) {
                                                 $prioridad1 = MdlCourse::model()->findAll(array('select' => 'id,sortorder,category,fullname,shortname,idnumber', 'order' => 'category ASC, sortorder ASC', 'condition' => ''));
                                                 $prioridad = $this->getCursosPriorizados($prioridad1);
                                                 $this->activarTodosLosCursos($prioridad[$id_catgoria], $usuario->id);
@@ -111,7 +111,7 @@ class CuotaController extends Controller {
                                             } else {
                                                 //$rowData en la posicion 5 tiene la cuota a activar.
                                                 if(!$this->isCuotaActiva($rowData[5],$usuario->id)){
-                                                    $max_number_cuota = $this->buscarCutaMaximaByUsuario($usuario->id);
+                                                    $max_number_cuota = $this->buscarCutaMaximaByUsuario($usuario->id,$rowData[5]);
                                                     for($i = $max_number_cuota + 1; $i<=$rowData[5]; $i++)
                                                     {
                                                         $max_curso = $this->getMaxCursoByUser($usuario->id);
@@ -166,7 +166,7 @@ class CuotaController extends Controller {
      * @param type $id_usuario
      * @return type int
      */
-    public function buscarCutaMaximaByUsuario($id_usuario)
+    public function buscarCutaMaximaByUsuario($id_usuario,$cuota)
     {
         $registro = AlmRegistroCuota::model()->find(array('condition'=>'id_user_mdl=?','select'=>'MAX(cuota) AS cuota','params'=>array($id_usuario)));
         return $registro->cuota == null?0:$registro->cuota;
